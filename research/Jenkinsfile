@@ -1,0 +1,23 @@
+pipeline {
+    agent { label 'linux' }
+    stages {      
+        stage('Cleanup') {
+            steps {
+                sh 'docker-compose stop production-research development-research'
+                sh 'docker-compose rm production-research development-research'
+                sh 'rm -r *'
+            }
+        }
+        stage('Clone') {
+            steps {
+                sh 'git clone https://github.com/Emmvish/Sociocon.git .'
+                sh "find . -mindepth 1  ! -regex '^./research\(/.*\)?' -delete"
+            }
+        }
+        stage('Test & Deploy') {
+            steps {
+                sh 'cd research && docker-compose up --detach --build production-research development-research'
+            }
+        }
+    }
+}

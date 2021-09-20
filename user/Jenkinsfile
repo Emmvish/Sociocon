@@ -1,0 +1,23 @@
+pipeline {
+    agent { label 'linux' }
+    stages {      
+        stage('Cleanup') {
+            steps {
+                sh 'docker-compose stop production-user development-user'
+                sh 'docker-compose rm production-user development-user'
+                sh 'rm -r *'
+            }
+        }
+        stage('Clone') {
+            steps {
+                sh 'git clone https://github.com/Emmvish/Sociocon.git .'
+                sh "find . -mindepth 1  ! -regex '^./user\(/.*\)?' -delete"
+            }
+        }
+        stage('Test & Deploy') {
+            steps {
+                sh 'cd user && docker-compose up --detach --build production-user development-user'
+            }
+        }
+    }
+}

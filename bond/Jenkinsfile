@@ -1,0 +1,23 @@
+pipeline {
+    agent { label 'linux' }
+    stages {      
+        stage('Cleanup') {
+            steps {
+                sh 'docker-compose stop production-bond development-bond'
+                sh 'docker-compose rm production-bond development-bond'
+                sh 'rm -r *'
+            }
+        }
+        stage('Clone') {
+            steps {
+                sh 'git clone https://github.com/Emmvish/Sociocon.git .'
+                sh "find . -mindepth 1  ! -regex '^./bond\(/.*\)?' -delete"
+            }
+        }
+        stage('Test & Deploy') {
+            steps {
+                sh 'cd bond && docker-compose up --detach --build production-bond development-bond'
+            }
+        }
+    }
+}

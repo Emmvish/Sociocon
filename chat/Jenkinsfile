@@ -1,0 +1,23 @@
+pipeline {
+    agent { label 'linux' }
+    stages {      
+        stage('Cleanup') {
+            steps {
+                sh 'docker-compose stop production-chat development-chat'
+                sh 'docker-compose rm production-chat development-chat'
+                sh 'rm -r *'
+            }
+        }
+        stage('Clone') {
+            steps {
+                sh 'git clone https://github.com/Emmvish/Sociocon.git .'
+                sh "find . -mindepth 1  ! -regex '^./chat\(/.*\)?' -delete"
+            }
+        }
+        stage('Test & Deploy') {
+            steps {
+                sh 'cd chat && docker-compose up --detach --build production-chat development-chat'
+            }
+        }
+    }
+}
