@@ -32,9 +32,13 @@ router.get('/research/profiles', auth, async (req, res)=>{
 router.get('/research/person', auth, async (req, res)=>{
     try {
         const person = await User.findOne({ name: req.query.name });
-        res.status(200).send({ person })
+        if(!person) {
+            throw new Error('This profile does not exist!')
+        }
+        const mutualFriends = person.friends.filter(friend => req.user.friends.includes(friend));
+        res.status(200).send({ person, mutualFriends })
     } catch(e) {
-        res.status(503).send({ error: 'Unable to perform search right now!' })
+        res.status(404).send({ error: e.message })
     }
 })
 
