@@ -34,28 +34,19 @@ io.on('connection', (socket) => {
         callback()
     })
 
-//     socket.on("chat", async ({ token, friendName }, callback) => {
-//         const decoded = jwt.verify(token, jwtSecret);
-//         const user = await User.findOne({ _id: decoded._id, 'tokens.token': data.token });
-//         if(!user) {
-//             return callback("ERROR: User was not found!")
-//         }
-//         const friendExists = await User.findOne({ name: friendName })
-//         const isAFriend = user.friends.find((friend) => friend.name === friendName);
-//         if(!friendExists || !isAFriend) {
-//             return callback("ERROR: Friend was not found!")
-//         }
-//         if(friendExists.room === friendName + "-" + user.name) {
-//             user.room = friendExists.room;
-//             await user.save();
-//             socket.join(friendExists.room);
-//         } else {
-//             user.room = user.name + "-" + friendName;
-//             await user.save();
-//             socket.join(user.room);
-//         }
-//         socket.emit("conversation", { messages: isAFriend.messages })
-//     } )
+    socket.on("chat", async ({ token, friendName }, callback) => {
+        const decoded = jwt.verify(token, jwtSecret);
+        const user = await User.findOne({ _id: decoded._id, 'tokens.token': data.token });
+        if(!user) {
+            return callback("ERROR: User was not found!")
+        }
+        const friend = user.friends.find((friend) => friend.name === friendName);
+        if(!friend) {
+            return callback('ERROR: Friend was not found!')
+        }
+        io.to(user.room).emit("chatHistory", { messages: friend.messages });
+        callback();
+    } )
 
     socket.on("sendMessage", async ({ token, message, friendName }, callback) => {
         const decoded = jwt.verify(token, jwtSecret);
@@ -63,6 +54,7 @@ io.on('connection', (socket) => {
         if(!user) {
             return callback("ERROR: User was not found!")
         }
+        message.sentBy = user.name;
         const friendExists = await User.findOne({ name: friendName })
         const isAFriend = user.friends.find((friend) => friend.name === friendName);
         if(!friendExists || !isAFriend) {
@@ -72,7 +64,6 @@ io.on('connection', (socket) => {
         if(filter.isProfane(message.content)) {
             return callback("ERROR: This message was not sent as it contained profanity!")
         }
-        io.to(user.room).emit("newMessage", { message });
         friendExists.friends.forEach((friend, i) => {
             if(friend.name === user.name) {
                 friend.messages.push(message);
@@ -88,6 +79,8 @@ io.on('connection', (socket) => {
             }
         })
         await user.save();
+        io.to(user.room).emit("newMessage", { message });
+        io.to(friendExists.room).emit("newMessage", { message });
         callback();
     } )
 
