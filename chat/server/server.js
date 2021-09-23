@@ -34,28 +34,28 @@ io.on('connection', (socket) => {
         callback()
     })
 
-    socket.on("chat", async ({ token, friendName }, callback) => {
-        const decoded = jwt.verify(token, jwtSecret);
-        const user = await User.findOne({ _id: decoded._id, 'tokens.token': data.token });
-        if(!user) {
-            return callback("ERROR: User was not found!")
-        }
-        const friendExists = await User.findOne({ name: friendName })
-        const isAFriend = user.friends.find((friend) => friend.name === friendName);
-        if(!friendExists || !isAFriend) {
-            return callback("ERROR: Friend was not found!")
-        }
-        if(friendExists.room === friendName + "-" + user.name) {
-            user.room = friendExists.room;
-            await user.save();
-            socket.join(friendExists.room);
-        } else {
-            user.room = user.name + "-" + friendName;
-            await user.save();
-            socket.join(user.room);
-        }
-        socket.emit("conversation", { messages: isAFriend.messages })
-    } )
+//     socket.on("chat", async ({ token, friendName }, callback) => {
+//         const decoded = jwt.verify(token, jwtSecret);
+//         const user = await User.findOne({ _id: decoded._id, 'tokens.token': data.token });
+//         if(!user) {
+//             return callback("ERROR: User was not found!")
+//         }
+//         const friendExists = await User.findOne({ name: friendName })
+//         const isAFriend = user.friends.find((friend) => friend.name === friendName);
+//         if(!friendExists || !isAFriend) {
+//             return callback("ERROR: Friend was not found!")
+//         }
+//         if(friendExists.room === friendName + "-" + user.name) {
+//             user.room = friendExists.room;
+//             await user.save();
+//             socket.join(friendExists.room);
+//         } else {
+//             user.room = user.name + "-" + friendName;
+//             await user.save();
+//             socket.join(user.room);
+//         }
+//         socket.emit("conversation", { messages: isAFriend.messages })
+//     } )
 
     socket.on("sendMessage", async ({ token, message, friendName }, callback) => {
         const decoded = jwt.verify(token, jwtSecret);
