@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
             content: {
                 type: String,
                 required: true
+            },
+            sentBy: {
+                type: String,
+                required: true
             }
         }]
     }]
