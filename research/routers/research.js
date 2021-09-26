@@ -22,6 +22,19 @@ router.get('/research/profiles', auth, async (req, res)=>{
                                     .sort({ createdAt: -1 })
                                     .skip(offset)
                                     .limit(limit);
+            users.forEach((user) => {
+                user.itsMe = false;
+                if(user.name === req.user.name) {
+                    user.itsMe = true;
+                    return;
+                }
+                user.isAFriend = false;
+                req.user.friends.forEach((friend) => {
+                    if(friend.name === user.name) {
+                        user.isAFriend = true;
+                    }
+                })
+            })
             res.status(200).send({ users });
         }
     } catch(e) {
@@ -35,6 +48,8 @@ router.get('/research/person', auth, async (req, res)=>{
         if(!person) {
             throw new Error('This profile does not exist!')
         }
+        person.itsMe = !!(req.user.name === person.name);
+        person.isAFriend = !!req.user.friends.find((friend) => friend.name === person.name)
         const mutualFriends = person.friends.filter(friend => req.user.friends.includes(friend));
         res.status(200).send({ person, mutualFriends })
     } catch(e) {
