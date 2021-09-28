@@ -50,8 +50,12 @@ router.get('/research/person', auth, async (req, res)=>{
         }
         person.itsMe = !!(req.user.name === person.name);
         person.isAFriend = !!req.user.friends.find((friend) => friend.name === person.name)
-        const mutualFriends = person.friends.filter(friend => req.user.friends.includes(friend));
-        res.status(200).send({ person, mutualFriends })
+        if(!person.itsMe) {
+            const mutualFriends = person.friends.filter(friend => req.user.friends.includes(friend));
+            res.status(200).send({ person, mutualFriends })
+        } else {
+            res.status(200).send({ person })
+        }
     } catch(e) {
         res.status(404).send({ error: e.message })
     }
