@@ -17,19 +17,26 @@ io.on('connection', (socket) => {
         user.room = room;
         await user.save();
         socket.join(room);
-        const activeFriends = [];
+        const onlineFriends = [];
         for(let i = 0; i < user.friends.length; i++) {
             const friend = await User.findOne({ name: user.friends[i].name });
             if(!!friend.room) {
-                activeFriends.push(friend.name);
+                onlineFriends.push(friend.name);
                 const friendRoom = "reception-" + friend.name;
                 io.to(friendRoom).emit("friendJoined", {
                     name: user.name
                 })
             }
         }
+        const offlineFriends = [];
+        user.friends.forEach((friend) => {
+            if(!onlineFriends.find((onlineFriend) => onlineFriend.name === friend.name )) {
+                offlineFriends.push(friend.name)
+            }
+        })
         io.to(room).emit('roomData', {
-            onlineFriends: activeFriends
+            onlineFriends,
+            offlineFriends
         })
         callback()
     })
@@ -80,7 +87,9 @@ io.on('connection', (socket) => {
         })
         await user.save();
         io.to(user.room).emit("newMessage", { message });
-        io.to(friendExists.room).emit("newMessage", { message });
+        if(!!friendExists.room) {
+            io.to(friendExists.room).emit("newMessage", { message });
+        }
         callback();
     } )
 
