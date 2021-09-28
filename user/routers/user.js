@@ -77,10 +77,6 @@ router.post("/users/forgotpassword", async (req,res)=>{
     }
 })
 
-router.get('/users/me', auth, async (req, res) => {
-    res.status(200).send({ user: req.user.toJSON() })
-})
-
 router.patch('/users/edit', auth, async (req, res) => {
     delete req.body.currentName;
     const allowedUpdates = ['name', 'password','email']
