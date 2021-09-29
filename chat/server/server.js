@@ -97,12 +97,13 @@ io.on('connection', (socket) => {
         const user = await User.findOne({ _id: decoded._id, 'tokens.token': data.token });
         user.room = '';
         await user.save();
-        user.friends.forEach((friend) => {
+        for(let i = 0; i < user.friends.length; i++) {
+            const friend = await User.findOne({ name: user.friends[i].name });
             if(!!friend.room) {
                 io.to(friendRoom).emit("friendDisconnected", {
                     name: user.name
                 })
             }
-        })
+        }
     })
 })
