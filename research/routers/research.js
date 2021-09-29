@@ -14,6 +14,19 @@ router.get('/research/profiles', auth, async (req, res)=>{
                     users.push(results[i]);
                 }
             }
+            users.forEach((user) => {
+                user.itsMe = false;
+                if(user.name === req.user.name) {
+                    user.itsMe = true;
+                    return;
+                }
+                user.isAFriend = false;
+                req.user.friends.forEach((friend) => {
+                    if(friend.name === user.name) {
+                        user.isAFriend = true;
+                    }
+                })
+            })
             res.status(200).send({ users, totalResults: results.length });
         } else {
             const offset = (req.query.pageNo - 1)*req.query.limit;
