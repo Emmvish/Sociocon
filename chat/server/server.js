@@ -22,8 +22,7 @@ io.on('connection', (socket) => {
             const friend = await User.findOne({ name: user.friends[i].name });
             if(!!friend.room) {
                 onlineFriends.push(friend.name);
-                const friendRoom = "reception-" + friend.name;
-                io.to(friendRoom).emit("friendJoined", {
+                io.to(friend.room).emit("friendJoined", {
                     name: user.name
                 })
             }
@@ -99,10 +98,11 @@ io.on('connection', (socket) => {
         user.room = '';
         await user.save();
         user.friends.forEach((friend) => {
-            const friendRoom = "reception-" + friend.name;
-            io.to(friendRoom).emit("friendDisconnected", {
-                name: user.name
-            })
+            if(!!friend.room) {
+                io.to(friendRoom).emit("friendDisconnected", {
+                    name: user.name
+                })
+            }
         })
     })
 })
