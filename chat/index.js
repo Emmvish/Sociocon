@@ -155,12 +155,12 @@ async function handleEvent(type, data) {
                 await user.save();
                 friend.friends = friend.friends.filter((friend) => friend.name !== user.name);
                 await friend.save();
-                if(user.room) {
+                if(!!user.room) {
                     io.to(user.room).emit("friendRemoved", {
                         name: friend.name
                     })
                 }
-                if(friend.room) {
+                if(!!friend.room) {
                     io.to(friend.room).emit("friendRemoved", {
                         name: user.name
                     })
@@ -185,12 +185,12 @@ async function handleEvent(type, data) {
                 await user.save();
                 friend.friends = friend.friends.concat({ name: user.name });
                 await friend.save();
-                if(user.room) {
+                if(!!user.room) {
                     io.to(user.room).emit("friendJoined", {
                         name: friend.name
                     })
                 }
-                if(friend.room) {
+                if(!!friend.room) {
                     io.to(friend.room).emit("friendJoined", {
                         name: user.name
                     })
