@@ -7,13 +7,8 @@ router.get('/research/profiles', auth, async (req, res)=>{
     try {
         if(req.query.firstSearch === 'true') {
             const results = await User.find({ name: { $regex: req.query.searchTerm, $options: 'i' } }, { name: 1, email: 1 }).sort({ createdAt: -1 })
-            const users = [];
             const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-            for( let i = 0; i < limit; i++ ) {
-                if(results[i]) {
-                    users.push(results[i]);
-                }
-            }
+            const users = results.slice(0, limit);
             users.forEach((user) => {
                 user.itsMe = false;
                 if(user.name === req.user.name) {
