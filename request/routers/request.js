@@ -40,24 +40,12 @@ router.get('/requests/sent', auth, async (req, res)=>{
     try {
         if(req.query.firstSearch === 'true') {
             const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-            const results = req.user.sentRequests;
-            const sentRequests = [];
-            for( let i = 0; i < limit; i++ ) {
-                if(results[i]) {
-                    sentRequests.push(results[i]);
-                }
-            }
-            res.status(200).send({ sentRequests, totalResults: results.length })
+            const sentRequests = req.user.sentRequests.slice(0, limit);
+            res.status(200).send({ sentRequests, totalResults: req.user.sentRequests.length })
         } else {
             const limit = req.query.limit ? parseInt(req.query.limit) : 10;
             const offset = (req.query.pageNo - 1)*limit;
-            const results = req.user.sentRequests;
-            const sentRequests = [];
-            for(let i = offset; i < (offset + limit); i++) {
-                if(results[i]) {
-                    sentRequests.push(results[i])
-                }
-            }
+            const sentRequests = req.user.sentRequests.slice(offset, limit+offset);
             res.status(200).send({ sentRequests });
         }
     } catch (e) {
@@ -69,24 +57,12 @@ router.get('/requests/received', auth, async (req, res)=>{
     try {
         if(req.query.firstSearch === 'true') {
             const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-            const results = req.user.receivedRequests;
-            const receivedRequests = [];
-            for( let i = 0; i < limit; i++ ) {
-                if(results[i]) {
-                    receivedRequests.push(results[i]);
-                }
-            }
-            res.status(200).send({ receivedRequests, totalResults: results.length })
+            const receivedRequests = req.user.receivedRequests.slice(0, limit);
+            res.status(200).send({ receivedRequests, totalResults: req.user.receivedRequests.length })
         } else {
             const limit = req.query.limit ? parseInt(req.query.limit) : 10;
             const offset = (req.query.pageNo - 1)*limit;
-            const results = req.user.receivedRequests;
-            const receivedRequests = [];
-            for(let i = offset; i < (offset + limit); i++) {
-                if(results[i]) {
-                    receivedRequests.push(results[i])
-                }
-            }
+            const receivedRequests = req.user.receivedRequests.slice(offset, limit+offset);
             res.status(200).send({ receivedRequests });
         }
     } catch(e) {
@@ -103,7 +79,7 @@ router.post('/requests/reject', auth, async (req, res)=>{
         await otherUser.save();
         res.status(200).send({ message: 'You have rejected this friend request!' })
     } catch(e) {
-        res.status(503).send({ error: 'Unable to send this friend request.' })
+        res.status(503).send({ error: 'Unable to reject this friend request.' })
     }
 })
 
@@ -116,7 +92,7 @@ router.post('/requests/remove', auth, async (req, res)=>{
         await otherUser.save();
         res.status(200).send({ message: 'You have removed this friend request!' })
     } catch(e) {
-        res.status(503).send({ error: 'Unable to send this friend request.' })
+        res.status(503).send({ error: 'Unable to remove this friend request.' })
     }
 })
 
@@ -131,7 +107,7 @@ router.post('/requests/accept', auth, async (req, res)=>{
         requestChannel.sendToQueue(requestQueue, Buffer.from(JSON.stringify(event)));
         res.status(200).send({ message: 'You have accepted this friend request!' })
     } catch(e) {
-        res.status(503).send({ error: 'Unable to send this friend request.' })
+        res.status(503).send({ error: 'Unable to accept this friend request.' })
     }
 })
 

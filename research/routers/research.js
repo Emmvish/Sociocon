@@ -63,43 +63,33 @@ router.get('/research/person', auth, async (req, res)=>{
         }
         person.itsMe = !!(req.user.name === person.name);
         person.isAFriend = !!req.user.friends.find((friend) => friend.name === person.name)
+        const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+        person.friends = person.friends.slice(0, limit);
         if(!person.itsMe) {
             const mutualFriends = person.friends.filter(friend => req.user.friends.includes(friend));
-            res.status(200).send({ person, mutualFriends })
+            res.status(200).send({ person, mutualFriends, totalResults: person.friends.length })
         } else {
-            res.status(200).send({ person })
+            res.status(200).send({ person, totalResults: person.friends.length })
         }
     } catch(e) {
         res.status(404).send({ error: e.message })
     }
 })
 
-router.get('/research/friends/all', auth, (req, res)=>{
+router.get('/research/friends', auth, async (req, res)=>{
     try {
-        if(req.query.firstSearch === 'true') {
-            const results = req.user.friends;
-            const friends = [];
-            const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-            for( let i = 0; i < limit; i++ ) {
-                if(results[i]) {
-                    friends.push(results[i]);
-                }
-            }
-            res.status(200).send({ friends, totalResults: results.length });
+        let person;
+        if(req.query.name === req.user.name) {
+            person = req.user;
         } else {
-            const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-            const offset = (req.query.pageNo - 1)*limit;
-            const results = req.user.friends;
-            const friends = [];
-            for(let i = offset; i < (offset + limit); i++) {
-                if(results[i]) {
-                    friends.push(results[i])
-                }
-            }
-            res.status(200).send({ friends });
+            person = await User.findOne({ name: req.query.name })
         }
+        const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+        const offset = (req.query.pageNo - 1)*limit;
+        const friends = req.user.friends.slice(offset, limit+offset);
+        res.status(200).send({ friends });
     } catch(e) {
-        res.status(503).send({ error: 'Unable to perform search right now!' })
+        res.status(503).send({ error: e.message })
     }
 })
 
